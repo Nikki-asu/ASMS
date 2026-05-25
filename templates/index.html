@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ASMS – Automotive Shop Management System</title>
+<link href="https://fonts.googleapis.com/css2?family=Satisfy&family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue:      #1a4f8a;
+    --blue-dark: #0f3060;
+    --blue-light:#2a6fc4;
+    --bg:        #111827;
+    --surface:   #ffffff;
+    --surface2:  #f0f4f8;
+    --border:    #d0dae8;
+    --text:      #1a2a3a;
+    --muted:     #6b82a0;
+    --success:   #2ecc71;
+    --error:     #e74c3c;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Open Sans', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* header */
+  header {
+    background: linear-gradient(135deg, var(--blue-dark) 0%, var(--blue) 60%, var(--blue-light) 100%);
+    padding: 16px 40px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.4);
+  }
+  header h1 {
+    font-family: 'Satisfy', cursive;
+    font-size: 2rem;
+    color: #fff;
+    text-shadow: 1px 2px 6px rgba(0,0,0,0.3);
+  }
+  header span {
+    font-size: 12px;
+    color: rgba(255,255,255,0.65);
+    font-weight: 300;
+  }
+
+  /* nav */
+  nav {
+    background: var(--blue-dark);
+    display: flex;
+    padding: 0 40px;
+    border-bottom: 3px solid var(--blue-light);
+  }
+  nav button {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.7);
+    font-family: 'Open Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 14px 22px;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -3px;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+  nav button:hover { color: #fff; }
+  nav button.active {
+    color: #fff;
+    border-bottom-color: #fff;
+    background: rgba(255,255,255,0.08);
+  }
+
+  /* layout */
+  main { padding: 32px 40px; max-width: 1300px; margin: 0 auto; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+  .page-layout {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 28px;
+    align-items: start;
+  }
+  .sidebar { display: flex; flex-direction: column; gap: 20px; }
+
+  /* cards */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--blue);
+    border-radius: 6px;
+    padding: 20px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .card h2 {
+    font-family: 'Satisfy', cursive;
+    font-size: 1.15rem;
+    color: var(--blue);
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .content-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--blue);
+    border-radius: 6px;
+    padding: 24px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .content-card h2 {
+    font-family: 'Satisfy', cursive;
+    font-size: 1.4rem;
+    color: var(--blue);
+    margin-bottom: 18px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* forms */
+  .form-group { margin-bottom: 12px; }
+  label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  input, select, textarea {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 11px;
+    font-family: 'Open Sans', sans-serif;
+    font-size: 13px;
+    border-radius: 4px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--blue-light);
+    box-shadow: 0 0 0 2px rgba(42,111,196,0.15);
+  }
+  textarea { resize: vertical; min-height: 68px; }
+
+  /* buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 9px 18px;
+    font-family: 'Open Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--blue) 0%, var(--blue-light) 100%);
+    color: #fff;
+    width: 100%;
+    padding: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  }
+  .btn-primary:hover { filter: brightness(1.1); }
+  .btn-danger { background: #c0392b; color: #fff; }
+  .btn-danger:hover { background: #e74c3c; }
+  .btn-ghost {
+    background: transparent;
+    color: var(--blue);
+    border: 1px solid var(--border);
+    width: 100%;
+  }
+  .btn-ghost:hover { border-color: var(--blue); background: var(--surface2); }
+  .btn-sm { padding: 5px 12px; font-size: 11px; width: auto; }
+
+  /* table */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #fff;
+    text-align: left;
+    padding: 10px 14px;
+    background: var(--blue);
+  }
+  td { padding: 11px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; color: var(--text); }
+  tbody tr:hover td { background: #eaf1fb; }
+  .actions { display: flex; gap: 6px; align-items: center; }
+
+  /* badge */
+  .badge { display: inline-block; padding: 2px 8px; font-size: 10px; font-weight: 700; border-radius: 3px; }
+  .badge-year { background: #dbeafe; color: var(--blue); border: 1px solid #bfdbfe; }
+
+  .empty { color: var(--muted); font-style: italic; padding: 24px 0; text-align: center; }
+
+  /* toast */
+  #toast {
+    position: fixed; bottom: 24px; right: 24px;
+    padding: 12px 22px; border-radius: 5px;
+    font-size: 13px; font-weight: 600;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s; z-index: 999;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  }
+  #toast.show { opacity: 1; }
+  #toast.success { background: var(--success); color: #fff; }
+  #toast.error   { background: var(--error);   color: #fff; }
+
+  /* modal */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5); z-index: 100;
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: 4px solid var(--blue);
+    border-radius: 6px; padding: 28px;
+    width: 440px; max-width: 95vw;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+  }
+  .modal h3 {
+    font-family: 'Satisfy', cursive;
+    font-size: 1.4rem; color: var(--blue); margin-bottom: 18px;
+  }
+  .modal-actions { display: flex; gap: 10px; margin-top: 18px; justify-content: flex-end; }
+  .modal .btn-primary { width: auto; padding: 9px 22px; }
+  .modal .btn-ghost   { width: auto; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Automotive Shop Management System</h1>
+
+</header>
+
+<nav>
+  <button class="active" onclick="switchTab('owners', this)">Owners</button>
+  <button onclick="switchTab('vehicles', this)">Vehicles</button>
+  <button onclick="switchTab('service', this)">Service Records</button>
+</nav>
+
+<main>
+
+  <!-- OWNERS TAB -->
+  <div id="tab-owners" class="tab-panel active">
+    <div class="page-layout">
+      <div class="sidebar">
+        <div class="card">
+          <h2>Add New Owner</h2>
+          <div class="form-group">
+            <label>Name *</label>
+            <input type="text" id="o-name" placeholder="Full name">
+          </div>
+          <div class="form-group">
+            <label>Phone</label>
+            <input type="text" id="o-phone" placeholder="555-000-0000 (optional)">
+          </div>
+          <button class="btn btn-primary" onclick="addOwner()">+ Add Owner</button>
+        </div>
+        <div class="card">
+          <h2>Search Owners</h2>
+          <div class="form-group">
+            <label>Name</label>
+            <input type="text" id="o-search" placeholder="Type a name..." oninput="filterOwners()">
+          </div>
+          <button class="btn btn-ghost" onclick="clearOwnerSearch()" style="margin-top:4px">Clear / Show All</button>
+        </div>
+      </div>
+      <div class="content-card">
+        <h2>All Owners</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>ID</th><th>Name</th><th>Phone</th><th>Actions</th></tr></thead>
+            <tbody id="owners-body"><tr><td colspan="4" class="empty">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VEHICLES TAB -->
+  <div id="tab-vehicles" class="tab-panel">
+    <div class="page-layout">
+      <div class="sidebar">
+        <div class="card">
+          <h2>Register Vehicle</h2>
+          <div class="form-group"><label>VIN *</label><input type="text" id="v-vin" placeholder="17-character VIN" maxlength="17"></div>
+          <div class="form-group"><label>Make *</label><input type="text" id="v-make" placeholder="e.g. Ford"></div>
+          <div class="form-group"><label>Model *</label><input type="text" id="v-model" placeholder="e.g. F-150"></div>
+          <div class="form-group"><label>Year *</label><input type="number" id="v-year" placeholder="e.g. 2020" min="1900" max="2100"></div>
+          <div class="form-group"><label>Color</label><input type="text" id="v-color" placeholder="optional"></div>
+          <div class="form-group"><label>Owner *</label><select id="v-owner"></select></div>
+          <button class="btn btn-primary" onclick="addVehicle()">+ Register Vehicle</button>
+        </div>
+        <div class="card">
+          <h2>Search Vehicles</h2>
+          <div class="form-group">
+            <label>Make / Model / Owner</label>
+            <input type="text" id="v-search" placeholder="e.g. Ford..." oninput="filterVehicles()">
+          </div>
+          <button class="btn btn-ghost" onclick="clearVehicleSearch()" style="margin-top:4px">Clear / Show All</button>
+        </div>
+      </div>
+      <div class="content-card">
+        <h2>All Vehicles</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>VIN</th><th>Vehicle</th><th>Color</th><th>Owner</th><th>Actions</th></tr></thead>
+            <tbody id="vehicles-body"><tr><td colspan="5" class="empty">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SERVICE RECORDS TAB -->
+  <div id="tab-service" class="tab-panel">
+    <div class="page-layout">
+      <div class="sidebar">
+        <div class="card">
+          <h2>Log Service Record</h2>
+          <div class="form-group"><label>Vehicle (VIN) *</label><select id="sr-vin"></select></div>
+          <div class="form-group"><label>Service Date *</label><input type="date" id="sr-date"></div>
+          <div class="form-group"><label>Mileage *</label><input type="number" id="sr-mileage" placeholder="e.g. 45000" min="0"></div>
+          <div class="form-group"><label>Description *</label><textarea id="sr-desc" placeholder="What was done?"></textarea></div>
+          <div class="form-group"><label>Labor Hours *</label><input type="number" id="sr-labor" placeholder="e.g. 1.5" step="0.25" min="0"></div>
+          <div class="form-group"><label>Parts Cost ($)</label><input type="number" id="sr-parts" placeholder="0.00" step="0.01" min="0"></div>
+          <button class="btn btn-primary" onclick="addServiceRecord()">+ Log Record</button>
+        </div>
+        <div class="card">
+          <h2>Search Records</h2>
+          <div class="form-group">
+            <label>Owner / Vehicle / VIN / Description</label>
+            <input type="text" id="sr-search" placeholder="e.g. Freddie, Ford, oil change..." oninput="filterServiceRecords()">
+          </div>
+          <button class="btn btn-ghost" onclick="clearServiceSearch()" style="margin-top:4px">Clear / Show All</button>
+        </div>
+      </div>
+      <div class="content-card">
+        <h2>Service Records</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>ID</th><th>Date</th><th>Vehicle</th><th>Miles</th><th>Description</th><th>Labor Hrs</th><th>Parts $</th><th>Actions</th></tr></thead>
+            <tbody id="service-body"><tr><td colspan="8" class="empty">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- EDIT OWNER MODAL -->
+<div class="modal-overlay" id="modal-owner">
+  <div class="modal">
+    <h3>Edit Owner</h3>
+    <input type="hidden" id="edit-o-id">
+    <div class="form-group"><label>Name *</label><input type="text" id="edit-o-name"></div>
+    <div class="form-group"><label>Phone</label><input type="text" id="edit-o-phone"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-owner')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveOwner()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT SERVICE RECORD MODAL -->
+<div class="modal-overlay" id="modal-service">
+  <div class="modal">
+    <h3>Edit Service Record</h3>
+    <input type="hidden" id="edit-sr-id">
+    <div class="form-group"><label>Service Date *</label><input type="date" id="edit-sr-date"></div>
+    <div class="form-group"><label>Mileage *</label><input type="number" id="edit-sr-mileage" min="0"></div>
+    <div class="form-group"><label>Description *</label><textarea id="edit-sr-desc"></textarea></div>
+    <div class="form-group"><label>Labor Hours *</label><input type="number" id="edit-sr-labor" step="0.25" min="0"></div>
+    <div class="form-group"><label>Parts Cost ($)</label><input type="number" id="edit-sr-parts" step="0.01" min="0"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-service')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveServiceRecord()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+function toast(msg, type="success") {
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.className = `show ${type}`;
+  setTimeout(() => t.className = "", 3000);
+}
+function switchTab(name, btn) {
+  document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
+  document.getElementById(`tab-${name}`).classList.add("active");
+  btn.classList.add("active");
+  if (name === "owners")   loadOwners();
+  if (name === "vehicles") { loadVehicles(); populateOwnerDropdown(); }
+  if (name === "service")  { loadServiceRecords(); populateVinDropdown(); }
+}
+function openModal(id)  { document.getElementById(id).classList.add("open"); }
+function closeModal(id) { document.getElementById(id).classList.remove("open"); }
+
+// owners
+let allOwners = [];
+async function loadOwners() {
+  const res = await fetch("/owners");
+  allOwners = await res.json();
+  renderOwners(allOwners);
+}
+function renderOwners(rows) {
+  const tbody = document.getElementById("owners-body");
+  if (!rows.length) { tbody.innerHTML = `<tr><td colspan="4" class="empty">No owners found.</td></tr>`; return; }
+  tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td style="color:var(--muted);font-size:12px">${r.ownerid}</td>
+      <td><strong>${r.name}</strong></td>
+      <td>${r.phone || '<span style="color:var(--muted)">—</span>'}</td>
+      <td class="actions">
+        <button class="btn btn-ghost btn-sm" onclick='editOwner(${r.ownerid},"${r.name}","${r.phone||""}")'>Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteOwner(${r.ownerid})">Delete</button>
+      </td>
+    </tr>`).join("");
+}
+function filterOwners() {
+  const q = document.getElementById("o-search").value.toLowerCase();
+  renderOwners(allOwners.filter(r => r.name.toLowerCase().includes(q)));
+}
+function clearOwnerSearch() {
+  document.getElementById("o-search").value = "";
+  renderOwners(allOwners);
+}
+async function addOwner() {
+  const name = document.getElementById("o-name").value.trim();
+  const phone = document.getElementById("o-phone").value.trim();
+  if (!name) { toast("Name is required.", "error"); return; }
+  const res = await fetch("/owners", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({name,phone}) });
+  const data = await res.json();
+  if (data.error) { toast(data.error,"error"); return; }
+  toast("Owner added!");
+  document.getElementById("o-name").value = "";
+  document.getElementById("o-phone").value = "";
+  loadOwners();
+}
+function editOwner(id, name, phone) {
+  document.getElementById("edit-o-id").value = id;
+  document.getElementById("edit-o-name").value = name;
+  document.getElementById("edit-o-phone").value = phone;
+  openModal("modal-owner");
+}
+async function saveOwner() {
+  const id = document.getElementById("edit-o-id").value;
+  const name = document.getElementById("edit-o-name").value.trim();
+  const phone = document.getElementById("edit-o-phone").value.trim();
+  if (!name) { toast("Name is required.","error"); return; }
+  await fetch(`/owners/${id}`, { method:"PUT", headers:{"Content-Type":"application/json"}, body:JSON.stringify({name,phone}) });
+  toast("Owner updated!"); closeModal("modal-owner"); loadOwners();
+}
+async function deleteOwner(id) {
+  if (!confirm("Delete this owner? This will fail if they have registered vehicles.")) return;
+  const res = await fetch(`/owners/${id}`, { method:"DELETE" });
+  const data = await res.json();
+  if (data.error) { toast(data.error,"error"); return; }
+  toast("Owner deleted."); loadOwners();
+}
+
+// vehicles
+let allVehicles = [];
+async function loadVehicles() {
+  const res = await fetch("/vehicles");
+  allVehicles = await res.json();
+  renderVehicles(allVehicles);
+}
+function renderVehicles(rows) {
+  const tbody = document.getElementById("vehicles-body");
+  if (!rows.length) { tbody.innerHTML = `<tr><td colspan="5" class="empty">No vehicles found.</td></tr>`; return; }
+  tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td style="font-size:11px;color:var(--muted)">${r.vin}</td>
+      <td><span class="badge badge-year">${r.year}</span> <strong>${r.make} ${r.model}</strong></td>
+      <td>${r.color || '<span style="color:var(--muted)">—</span>'}</td>
+      <td>${r.owner_name}</td>
+      <td class="actions">
+        <button class="btn btn-danger btn-sm" onclick="deleteVehicle('${r.vin}')">Delete</button>
+      </td>
+    </tr>`).join("");
+}
+function filterVehicles() {
+  const q = document.getElementById("v-search").value.toLowerCase();
+  renderVehicles(allVehicles.filter(r =>
+    r.make.toLowerCase().includes(q) || r.model.toLowerCase().includes(q) || r.owner_name.toLowerCase().includes(q)
+  ));
+}
+function clearVehicleSearch() {
+  document.getElementById("v-search").value = "";
+  renderVehicles(allVehicles);
+}
+async function populateOwnerDropdown() {
+  const res = await fetch("/owners");
+  const rows = await res.json();
+  document.getElementById("v-owner").innerHTML = rows.map(r => `<option value="${r.ownerid}">${r.name}</option>`).join("");
+}
+async function addVehicle() {
+  const vin = document.getElementById("v-vin").value.trim();
+  const make = document.getElementById("v-make").value.trim();
+  const model = document.getElementById("v-model").value.trim();
+  const year = document.getElementById("v-year").value;
+  const color = document.getElementById("v-color").value.trim();
+  const ownerid = document.getElementById("v-owner").value;
+  if (!vin||!make||!model||!year) { toast("VIN, make, model, and year are required.","error"); return; }
+  const res = await fetch("/vehicles", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({vin,make,model,year,color,ownerid}) });
+  const data = await res.json();
+  if (data.error) { toast(data.error,"error"); return; }
+  toast("Vehicle registered!");
+  ["v-vin","v-make","v-model","v-year","v-color"].forEach(id => document.getElementById(id).value="");
+  loadVehicles();
+}
+async function deleteVehicle(vin) {
+  if (!confirm(`Delete vehicle ${vin} and ALL its service records?`)) return;
+  const res = await fetch(`/vehicles/${vin}`, { method:"DELETE" });
+  const data = await res.json();
+  if (data.error) { toast(data.error,"error"); return; }
+  toast("Vehicle deleted."); loadVehicles();
+}
+
+// service records
+let allServiceRecords = [];
+async function loadServiceRecords() {
+  const res = await fetch("/service_records");
+  allServiceRecords = await res.json();
+  renderServiceRecords(allServiceRecords);
+}
+function renderServiceRecords(rows) {
+  const tbody = document.getElementById("service-body");
+  if (!rows.length) { tbody.innerHTML = `<tr><td colspan="8" class="empty">No records found.</td></tr>`; return; }
+  tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td style="color:var(--muted);font-size:12px">${r.serviceid}</td>
+      <td>${r.servicedate ? r.servicedate.slice(0,10) : ''}</td>
+      <td><span class="badge badge-year">${r.year}</span> ${r.make} ${r.model}<br>
+          <span style="font-size:10px;color:var(--muted)">${r.vin}</span></td>
+      <td>${Number(r.mileage).toLocaleString()}</td>
+      <td>${r.description}</td>
+      <td>${r.laborhours}</td>
+      <td>$${Number(r.partscost).toFixed(2)}</td>
+      <td class="actions">
+        <button class="btn btn-ghost btn-sm" onclick='editServiceRecord(${r.serviceid},"${r.servicedate?r.servicedate.slice(0,10):""}",${r.mileage},"${r.description.replace(/"/g,"&quot;")}",${r.laborhours},${r.partscost})'>Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteServiceRecord(${r.serviceid})">Delete</button>
+      </td>
+    </tr>`).join("");
+}
+function filterServiceRecords() {
+  const q = document.getElementById("sr-search").value.toLowerCase();
+  renderServiceRecords(allServiceRecords.filter(r =>
+    r.owner_name.toLowerCase().includes(q) ||
+    r.make.toLowerCase().includes(q) ||
+    r.model.toLowerCase().includes(q) ||
+    r.vin.toLowerCase().includes(q) ||
+    r.description.toLowerCase().includes(q)
+  ));
+}
+function clearServiceSearch() {
+  document.getElementById("sr-search").value = "";
+  renderServiceRecords(allServiceRecords);
+}
+async function populateVinDropdown() {
+  const res = await fetch("/vehicles");
+  const rows = await res.json();
+  document.getElementById("sr-vin").innerHTML = rows.map(r => `<option value="${r.vin}">${r.year} ${r.make} ${r.model} (${r.vin})</option>`).join("");
+}
+async function addServiceRecord() {
+  const vin=document.getElementById("sr-vin").value, date=document.getElementById("sr-date").value,
+        miles=document.getElementById("sr-mileage").value, desc=document.getElementById("sr-desc").value.trim(),
+        labor=document.getElementById("sr-labor").value, parts=document.getElementById("sr-parts").value||"0";
+  if (!vin||!date||!miles||!desc||!labor) { toast("All fields except Parts Cost are required.","error"); return; }
+  const res = await fetch("/service_records", { method:"POST", headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({vin,servicedate:date,mileage:miles,description:desc,laborhours:labor,partscost:parts}) });
+  const data = await res.json();
+  if (data.error) { toast(data.error,"error"); return; }
+  toast("Service record logged!");
+  ["sr-date","sr-mileage","sr-desc","sr-labor","sr-parts"].forEach(id=>document.getElementById(id).value="");
+  loadServiceRecords();
+}
+function editServiceRecord(id,date,mileage,desc,labor,parts) {
+  document.getElementById("edit-sr-id").value=id;
+  document.getElementById("edit-sr-date").value=date;
+  document.getElementById("edit-sr-mileage").value=mileage;
+  document.getElementById("edit-sr-desc").value=desc;
+  document.getElementById("edit-sr-labor").value=labor;
+  document.getElementById("edit-sr-parts").value=parts;
+  openModal("modal-service");
+}
+async function saveServiceRecord() {
+  const id=document.getElementById("edit-sr-id").value, date=document.getElementById("edit-sr-date").value,
+        miles=document.getElementById("edit-sr-mileage").value, desc=document.getElementById("edit-sr-desc").value.trim(),
+        labor=document.getElementById("edit-sr-labor").value, parts=document.getElementById("edit-sr-parts").value||"0";
+  if (!date||!miles||!desc||!labor) { toast("All required fields must be filled.","error"); return; }
+  await fetch(`/service_records/${id}`, { method:"PUT", headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({servicedate:date,mileage:miles,description:desc,laborhours:labor,partscost:parts}) });
+  toast("Service record updated!"); closeModal("modal-service"); loadServiceRecords();
+}
+async function deleteServiceRecord(id) {
+  if (!confirm("Delete this service record?")) return;
+  await fetch(`/service_records/${id}`, { method:"DELETE" });
+  toast("Record deleted."); loadServiceRecords();
+}
+
+loadOwners();
+</script>
+</body>
+</html>
