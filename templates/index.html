@@ -31,12 +31,30 @@
     min-height: 100vh;
   }
 
+  /* demo banner */
+  #demo-banner {
+    display: none;
+    background: #f59e0b;
+    color: #1a1a1a;
+    text-align: center;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+  }
+  #demo-banner a {
+    color: #1a1a1a;
+    text-decoration: underline;
+    margin-left: 6px;
+  }
+
   /* header */
   header {
     background: linear-gradient(135deg, var(--blue-dark) 0%, var(--blue) 60%, var(--blue-light) 100%);
     padding: 16px 40px;
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 16px;
     box-shadow: 0 3px 12px rgba(0,0,0,0.4);
   }
@@ -46,11 +64,20 @@
     color: #fff;
     text-shadow: 1px 2px 6px rgba(0,0,0,0.3);
   }
-  header span {
+  #logout-btn {
     font-size: 12px;
-    color: rgba(255,255,255,0.65);
-    font-weight: 300;
+    color: rgba(255,255,255,0.75);
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.25);
+    padding: 6px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.2s;
   }
+  #logout-btn:hover { background: rgba(255,255,255,0.2); }
 
   /* nav */
   nav {
@@ -254,9 +281,15 @@
 </head>
 <body>
 
+<!-- demo banner — shown by JS if role === 'demo' -->
+<div id="demo-banner">
+  🔧 Demo Mode — data resets daily at midnight. You can add, edit, and delete freely (5 writes/min limit).
+  <a href="/logout">Log out</a>
+</div>
+
 <header>
   <h1>Automotive Shop Management System</h1>
-
+  <a href="/logout" id="logout-btn">Log Out</a>
 </header>
 
 <nav>
@@ -410,11 +443,31 @@
 <div id="toast"></div>
 
 <script>
+// role injected by Flask — 'admin' or 'demo'
+const USER_ROLE = "{{ role }}";
+
+// show demo banner if in demo mode
+if (USER_ROLE === "demo") {
+  document.getElementById("demo-banner").style.display = "block";
+}
+
 function toast(msg, type="success") {
   const t = document.getElementById("toast");
   t.textContent = msg; t.className = `show ${type}`;
   setTimeout(() => t.className = "", 3000);
 }
+
+// handle fetch responses — catches 429 rate limit and 403 demo block
+async function handleResponse(res) {
+  if (res.status === 429) {
+    toast("Demo limit reached — try again in a minute.", "error");
+    return null;
+  }
+  const data = await res.json();
+  if (data.error) { toast(data.error, "error"); return null; }
+  return data;
+}
+
 function switchTab(name, btn) {
   document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
   document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
@@ -461,8 +514,8 @@ async function addOwner() {
   const phone = document.getElementById("o-phone").value.trim();
   if (!name) { toast("Name is required.", "error"); return; }
   const res = await fetch("/owners", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({name,phone}) });
-  const data = await res.json();
-  if (data.error) { toast(data.error,"error"); return; }
+  const data = await handleResponse(res);
+  if (!data) return;
   toast("Owner added!");
   document.getElementById("o-name").value = "";
   document.getElementById("o-phone").value = "";
@@ -479,14 +532,16 @@ async function saveOwner() {
   const name = document.getElementById("edit-o-name").value.trim();
   const phone = document.getElementById("edit-o-phone").value.trim();
   if (!name) { toast("Name is required.","error"); return; }
-  await fetch(`/owners/${id}`, { method:"PUT", headers:{"Content-Type":"application/json"}, body:JSON.stringify({name,phone}) });
+  const res = await fetch(`/owners/${id}`, { method:"PUT", headers:{"Content-Type":"application/json"}, body:JSON.stringify({name,phone}) });
+  const data = await handleResponse(res);
+  if (!data) return;
   toast("Owner updated!"); closeModal("modal-owner"); loadOwners();
 }
 async function deleteOwner(id) {
   if (!confirm("Delete this owner? This will fail if they have registered vehicles.")) return;
   const res = await fetch(`/owners/${id}`, { method:"DELETE" });
-  const data = await res.json();
-  if (data.error) { toast(data.error,"error"); return; }
+  const data = await handleResponse(res);
+  if (!data) return;
   toast("Owner deleted."); loadOwners();
 }
 
@@ -535,8 +590,8 @@ async function addVehicle() {
   const ownerid = document.getElementById("v-owner").value;
   if (!vin||!make||!model||!year) { toast("VIN, make, model, and year are required.","error"); return; }
   const res = await fetch("/vehicles", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({vin,make,model,year,color,ownerid}) });
-  const data = await res.json();
-  if (data.error) { toast(data.error,"error"); return; }
+  const data = await handleResponse(res);
+  if (!data) return;
   toast("Vehicle registered!");
   ["v-vin","v-make","v-model","v-year","v-color"].forEach(id => document.getElementById(id).value="");
   loadVehicles();
@@ -544,8 +599,8 @@ async function addVehicle() {
 async function deleteVehicle(vin) {
   if (!confirm(`Delete vehicle ${vin} and ALL its service records?`)) return;
   const res = await fetch(`/vehicles/${vin}`, { method:"DELETE" });
-  const data = await res.json();
-  if (data.error) { toast(data.error,"error"); return; }
+  const data = await handleResponse(res);
+  if (!data) return;
   toast("Vehicle deleted."); loadVehicles();
 }
 
@@ -601,8 +656,8 @@ async function addServiceRecord() {
   if (!vin||!date||!miles||!desc||!labor) { toast("All fields except Parts Cost are required.","error"); return; }
   const res = await fetch("/service_records", { method:"POST", headers:{"Content-Type":"application/json"},
     body:JSON.stringify({vin,servicedate:date,mileage:miles,description:desc,laborhours:labor,partscost:parts}) });
-  const data = await res.json();
-  if (data.error) { toast(data.error,"error"); return; }
+  const data = await handleResponse(res);
+  if (!data) return;
   toast("Service record logged!");
   ["sr-date","sr-mileage","sr-desc","sr-labor","sr-parts"].forEach(id=>document.getElementById(id).value="");
   loadServiceRecords();
@@ -621,13 +676,17 @@ async function saveServiceRecord() {
         miles=document.getElementById("edit-sr-mileage").value, desc=document.getElementById("edit-sr-desc").value.trim(),
         labor=document.getElementById("edit-sr-labor").value, parts=document.getElementById("edit-sr-parts").value||"0";
   if (!date||!miles||!desc||!labor) { toast("All required fields must be filled.","error"); return; }
-  await fetch(`/service_records/${id}`, { method:"PUT", headers:{"Content-Type":"application/json"},
+  const res = await fetch(`/service_records/${id}`, { method:"PUT", headers:{"Content-Type":"application/json"},
     body:JSON.stringify({servicedate:date,mileage:miles,description:desc,laborhours:labor,partscost:parts}) });
+  const data = await handleResponse(res);
+  if (!data) return;
   toast("Service record updated!"); closeModal("modal-service"); loadServiceRecords();
 }
 async function deleteServiceRecord(id) {
   if (!confirm("Delete this service record?")) return;
-  await fetch(`/service_records/${id}`, { method:"DELETE" });
+  const res = await fetch(`/service_records/${id}`, { method:"DELETE" });
+  const data = await handleResponse(res);
+  if (!data) return;
   toast("Record deleted."); loadServiceRecords();
 }
 
